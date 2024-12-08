@@ -189,9 +189,6 @@
             tierElements.forEach((tier, index) => {
                 const threshold = parseFloat(tier.querySelector('.tier-sales').value);
                 const rate = parseFloat(tier.querySelector('.tier-rate').value);
-                const nextThreshold = index < tierElements.length - 1
-                    ? parseFloat(tierElements[index + 1].querySelector('.tier-sales').value)
-                    : Infinity;
 
                 if (isNaN(threshold) || isNaN(rate) || threshold < 0 || rate < 0) {
                     alert('Please enter valid positive numbers for tier thresholds and rates.');
@@ -199,7 +196,7 @@
                 }
 
                 if (currentQuota < threshold && remainingSales > 0) {
-                    const applicableAmount = Math.min(remainingSales, Math.min(threshold - currentQuota, nextThreshold - currentQuota));
+                    const applicableAmount = Math.min(remainingSales, threshold - currentQuota);
                     const tierCommission = (applicableAmount * rate) / 100;
                     commission += tierCommission;
                     details.push({ threshold, rate, amount: applicableAmount, tierCommission });
