@@ -49,16 +49,28 @@
         .calculator button {
             width: 100%;
             padding: 10px;
-            background-color: #FF9900;
-            color: white;
             font-size: 16px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
 
-        .calculator button:hover {
-            background-color: #FF9909;
+        .calculator button#addTier {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .calculator button#addTier:hover {
+            background-color: #0056b3;
+        }
+
+        .calculator button[type="submit"] {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .calculator button[type="submit"]:hover {
+            background-color: #218838;
         }
 
         .calculator .result {
@@ -77,14 +89,28 @@
             margin-right: 10px;
             margin-bottom: 5px;
         }
+
+        .log {
+            margin-top: 20px;
+            background: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div class="calculator">
         <h1>Commission Calculator</h1>
         <form id="commissionForm">
-            <label for="sales">Total Sales ($)</label>
-            <input type="number" id="sales" name="sales" placeholder="Enter total sales" required>
+            <label for="quota">Quota Obtained Before Deal ($)</label>
+            <input type="number" id="quota" name="quota" placeholder="Enter previous quota" value="0" required>
+
+            <label for="sales">Deal Sales ($)</label>
+            <input type="number" id="sales" name="sales" placeholder="Enter deal sales" required>
 
             <label for="tiers">Commission Tiers</label>
             <div class="tier-container" id="tierContainer">
@@ -99,9 +125,13 @@
         </form>
 
         <div class="result" id="result"></div>
+        <div class="log" id="log"></div>
     </div>
 
     <script>
+        let totalCommission = 0;
+        let updatedQuota = 0;
+
         document.getElementById('addTier').addEventListener('click', function () {
             const tierContainer = document.getElementById('tierContainer');
             const newTier = document.createElement('div');
@@ -116,15 +146,17 @@
             e.preventDefault();
 
             const sales = parseFloat(document.getElementById('sales').value);
+            const quota = parseFloat(document.getElementById('quota').value);
             const tierElements = document.querySelectorAll('.tier-container div');
 
-            if (isNaN(sales) || sales < 0) {
-                alert('Please enter a valid positive number for total sales.');
+            if (isNaN(sales) || sales < 0 || isNaN(quota) || quota < 0) {
+                alert('Please enter valid positive numbers for sales and quota.');
                 return;
             }
 
             let commission = 0;
-            let remainingSales = sales;
+            let remainingSales = sales + quota;
+            updatedQuota = sales + quota;
 
             tierElements.forEach((tier) => {
                 const threshold = parseFloat(tier.querySelector('.tier-sales').value);
@@ -144,7 +176,16 @@
                 }
             });
 
-            document.getElementById('result').textContent = `Total Commission: $${commission.toFixed(2)}`;
+            totalCommission += commission;
+
+            document.getElementById('result').textContent = `Total Commission: $${totalCommission.toFixed(2)}`;
+
+            const log = document.getElementById('log');
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `Deal: $${sales.toFixed(2)}, Commission Earned: $${commission.toFixed(2)}, Updated Quota: $${updatedQuota.toFixed(2)}`;
+            log.appendChild(logEntry);
+
+            document.getElementById('quota').value = updatedQuota.toFixed(2);
         });
     </script>
 </body>
