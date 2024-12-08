@@ -122,7 +122,7 @@
 </head>
 <body>
     <div class="calculator">
-        <h1>Commission Calculator v1</h1>
+        <h1>Commission Calculator v1.01</h1>
         <form id="commissionForm">
             <label for="repName">Sales Rep Name</label>
             <input type="text" id="repName" name="repName" placeholder="Enter sales rep name" required>
@@ -186,7 +186,7 @@
 
             let currentQuota = quota;
 
-            tierElements.forEach((tier, index) => {
+            tierElements.forEach((tier) => {
                 const threshold = parseFloat(tier.querySelector('.tier-sales').value);
                 const rate = parseFloat(tier.querySelector('.tier-rate').value);
 
@@ -196,12 +196,12 @@
                 }
 
                 if (currentQuota < threshold && remainingSales > 0) {
-                    const applicableAmount = Math.min(remainingSales, threshold - currentQuota);
-                    const tierCommission = (applicableAmount * rate) / 100;
+                    const eligibleSales = Math.min(threshold - currentQuota, remainingSales);
+                    const tierCommission = (eligibleSales * rate) / 100;
                     commission += tierCommission;
-                    details.push({ threshold, rate, amount: applicableAmount, tierCommission });
-                    currentQuota += applicableAmount;
-                    remainingSales -= applicableAmount;
+                    details.push({ amount: eligibleSales, rate, tierCommission });
+                    currentQuota += eligibleSales;
+                    remainingSales -= eligibleSales;
                 }
             });
 
