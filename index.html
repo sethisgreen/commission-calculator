@@ -68,6 +68,15 @@
             text-align: center;
             color: #333;
         }
+
+        .tier-container {
+            margin-top: 15px;
+        }
+
+        .tier-container input {
+            margin-right: 10px;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -77,8 +86,14 @@
             <label for="sales">Total Sales ($)</label>
             <input type="number" id="sales" name="sales" placeholder="Enter total sales" required>
 
-            <label for="rate">Commission Rate (%)</label>
-            <input type="number" id="rate" name="rate" placeholder="Enter commission rate" required>
+            <label for="tiers">Commission Tiers</label>
+            <div class="tier-container" id="tierContainer">
+                <div>
+                    <input type="number" class="tier-sales" placeholder="Sales Threshold ($)" required>
+                    <input type="number" class="tier-rate" placeholder="Rate (%)" required>
+                </div>
+            </div>
+            <button type="button" id="addTier">Add Tier</button>
 
             <button type="submit">Calculate</button>
         </form>
@@ -87,20 +102,49 @@
     </div>
 
     <script>
+        document.getElementById('addTier').addEventListener('click', function () {
+            const tierContainer = document.getElementById('tierContainer');
+            const newTier = document.createElement('div');
+            newTier.innerHTML = `
+                <input type="number" class="tier-sales" placeholder="Sales Threshold ($)" required>
+                <input type="number" class="tier-rate" placeholder="Rate (%)" required>
+            `;
+            tierContainer.appendChild(newTier);
+        });
+
         document.getElementById('commissionForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
             const sales = parseFloat(document.getElementById('sales').value);
-            const rate = parseFloat(document.getElementById('rate').value);
+            const tierElements = document.querySelectorAll('.tier-container div');
 
-            if (isNaN(sales) || isNaN(rate) || sales < 0 || rate < 0) {
-                alert('Please enter valid positive numbers for sales and rate.');
+            if (isNaN(sales) || sales < 0) {
+                alert('Please enter a valid positive number for total sales.');
                 return;
             }
 
-            const commission = (sales * rate) / 100;
+            let commission = 0;
+            let remainingSales = sales;
 
-            document.getElementById('result').textContent = `Commission: $${commission.toFixed(2)}`;
+            tierElements.forEach((tier) => {
+                const threshold = parseFloat(tier.querySelector('.tier-sales').value);
+                const rate = parseFloat(tier.querySelector('.tier-rate').value);
+
+                if (isNaN(threshold) || isNaN(rate) || threshold < 0 || rate < 0) {
+                    alert('Please enter valid positive numbers for tier thresholds and rates.');
+                    return;
+                }
+
+                if (remainingSales > threshold) {
+                    commission += (threshold * rate) / 100;
+                    remainingSales -= threshold;
+                } else {
+                    commission += (remainingSales * rate) / 100;
+                    remainingSales = 0;
+                }
+            });
+
+            document.getElementById('result').textContent = `Total Commission: $${commission.toFixed(2)}`;
         });
     </script>
 </body>
