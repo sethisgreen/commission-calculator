@@ -96,8 +96,26 @@
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            max-height: 200px;
+            max-height: 400px;
             overflow-y: auto;
+            font-size: 14px;
+        }
+
+        .log-entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fefefe;
+        }
+
+        .log-entry h3 {
+            margin: 0 0 5px;
+            font-size: 16px;
+        }
+
+        .log-entry p {
+            margin: 3px 0;
             font-size: 14px;
         }
     </style>
@@ -163,8 +181,8 @@
             }
 
             let commission = 0;
-            let remainingSales = sales + quota;
-            updatedQuota = sales + quota;
+            let remainingSales = sales;
+            let details = [];
 
             tierElements.forEach((tier) => {
                 const threshold = parseFloat(tier.querySelector('.tier-sales').value);
@@ -176,21 +194,41 @@
                 }
 
                 if (remainingSales > threshold) {
-                    commission += (threshold * rate) / 100;
+                    const tierCommission = (threshold * rate) / 100;
+                    commission += tierCommission;
+                    details.push({ threshold, rate, amount: threshold, tierCommission });
                     remainingSales -= threshold;
                 } else {
-                    commission += (remainingSales * rate) / 100;
+                    const tierCommission = (remainingSales * rate) / 100;
+                    commission += tierCommission;
+                    details.push({ threshold, rate, amount: remainingSales, tierCommission });
                     remainingSales = 0;
                 }
             });
 
             totalCommission += commission;
+            updatedQuota += sales;
 
             document.getElementById('result').textContent = `Total Commission: $${totalCommission.toFixed(2)}`;
 
             const log = document.getElementById('log');
             const logEntry = document.createElement('div');
-            logEntry.textContent = `Sales Rep: ${repName}, Deal Date: ${dealDate}, Deal: $${sales.toFixed(2)}, Commission Earned: $${commission.toFixed(2)}, Updated Quota: $${updatedQuota.toFixed(2)}`;
+            logEntry.classList.add('log-entry');
+            logEntry.innerHTML = `
+                <h3>Sales Rep: ${repName}</h3>
+                <p>Deal Date: ${dealDate}</p>
+                <p>Deal Amount: $${sales.toFixed(2)}</p>
+                <p>Commission Breakdown:</p>
+                <ul>
+                    ${details
+                        .map(
+                            (d) => `<li>$${d.amount.toFixed(2)} at ${d.rate}% = $${d.tierCommission.toFixed(2)}</li>`
+                        )
+                        .join('')}
+                </ul>
+                <p>Total Commission for Deal: $${commission.toFixed(2)}</p>
+                <p>Updated Quota: $${updatedQuota.toFixed(2)}</p>
+            `;
             log.appendChild(logEntry);
 
             document.getElementById('quota').value = updatedQuota.toFixed(2);
