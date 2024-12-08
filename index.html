@@ -85,9 +85,20 @@
             margin-top: 15px;
         }
 
+        .tier-container div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
         .tier-container input {
             margin-right: 10px;
             margin-bottom: 5px;
+        }
+
+        .tier-container span {
+            font-size: 14px;
+            color: #555;
         }
 
         .log {
@@ -122,7 +133,7 @@
 </head>
 <body>
     <div class="calculator">
-        <h1>Commission Calculator v1.01</h1>
+        <h1>Commission Calculator v1.02</h1>
         <form id="commissionForm">
             <label for="repName">Sales Rep Name</label>
             <input type="text" id="repName" name="repName" placeholder="Enter sales rep name" required>
@@ -141,6 +152,7 @@
                 <div>
                     <input type="number" class="tier-sales" placeholder="Sales Threshold ($)" required>
                     <input type="number" class="tier-rate" placeholder="Rate (%)" required>
+                    <span class="tier-range"></span>
                 </div>
             </div>
             <button type="button" id="addTier">Add Tier</button>
@@ -156,14 +168,31 @@
         let totalCommission = 0;
         let updatedQuota = 0;
 
+        function updateTierRanges() {
+            const tierElements = document.querySelectorAll('.tier-container div');
+            let previousThreshold = 0;
+
+            tierElements.forEach((tier) => {
+                const thresholdInput = tier.querySelector('.tier-sales');
+                const rangeSpan = tier.querySelector('.tier-range');
+                const threshold = parseFloat(thresholdInput.value) || 0;
+
+                rangeSpan.textContent = `Range: $${previousThreshold} - $${threshold}`;
+                previousThreshold = threshold;
+            });
+        }
+
         document.getElementById('addTier').addEventListener('click', function () {
             const tierContainer = document.getElementById('tierContainer');
             const newTier = document.createElement('div');
             newTier.innerHTML = `
                 <input type="number" class="tier-sales" placeholder="Sales Threshold ($)" required>
                 <input type="number" class="tier-rate" placeholder="Rate (%)" required>
+                <span class="tier-range"></span>
             `;
             tierContainer.appendChild(newTier);
+            newTier.querySelector('.tier-sales').addEventListener('input', updateTierRanges);
+            updateTierRanges();
         });
 
         document.getElementById('commissionForm').addEventListener('submit', function (e) {
@@ -186,7 +215,7 @@
 
             let currentQuota = quota;
 
-            tierElements.forEach((tier) => {
+            tierElements.forEach((tier, index) => {
                 const threshold = parseFloat(tier.querySelector('.tier-sales').value);
                 const rate = parseFloat(tier.querySelector('.tier-rate').value);
 
@@ -195,7 +224,12 @@
                     return;
                 }
 
-                if (currentQuota < threshold && remainingSales > 0) {
+                // Ensure that sales are only applied to tiers where quota has reached the tier
+                if (currentQuota >= threshold) {
+                    return; // Skip this tier as quota already surpassed it
+                }
+
+                if (remainingSales > 0) {
                     const eligibleSales = Math.min(threshold - currentQuota, remainingSales);
                     const tierCommission = (eligibleSales * rate) / 100;
                     commission += tierCommission;
@@ -232,6 +266,12 @@
 
             document.getElementById('quota').value = updatedQuota.toFixed(2);
         });
+
+        document.querySelectorAll('.tier-sales').forEach((input) => {
+            input.addEventListener('input', updateTierRanges);
+        });
+
+        updateTierRanges();
     </script>
 </body>
 </html>
